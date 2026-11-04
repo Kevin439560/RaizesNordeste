@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RaizesNordeste.Domain\RaizesNordeste.Dominio.csproj" />
+    <ProjectReference Include="..\RaizesNordeste.Infrastructure\RaizesNordeste.Infra.csproj" />
+  </ItemGroup>
+
+</Project>
