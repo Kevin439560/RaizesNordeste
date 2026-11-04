@@ -2,6 +2,7 @@
 using RaizesNordeste.Domain.Entities;
 using RaizesNordeste.Domain.Enums;
 using RaizesNordeste.Infra.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;

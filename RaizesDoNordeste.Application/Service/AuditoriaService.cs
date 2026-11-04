@@ -1,10 +1,11 @@
 ﻿using RaizesNordeste.Domain.Entities;
 using RaizesNordeste.Infra.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RaizesDoNordeste.Aplicacao.Service
+namespace RaizesDoNordeste.Aplicacao.Service;
 public class AuditoriaService
 {
     private readonly AppDbContext _context;
