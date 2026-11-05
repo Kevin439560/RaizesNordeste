@@ -9,6 +9,7 @@ namespace RaizesNordeste.Domain.Enums
         APP,
         TOTEM,
         BALCAO,
-        PICKUP
+        PICKUP,
+        WEB
     }
 }

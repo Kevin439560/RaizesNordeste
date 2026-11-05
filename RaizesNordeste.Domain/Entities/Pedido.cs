@@ -12,6 +12,8 @@ namespace RaizesNordeste.Domain.Entities
         public Guid IdUnidade { get; set; }
         public CanalPedido Canal { get; set; }
         public StatusPedido Status { get; set; } = StatusPedido.AGUARDANDO_PAGAMENTO;
+        public string FormaPagamento { get; set; } = "MOCK";
+        public decimal Desconto { get; set; } = 0m;
         public decimal ValorTotal { get; set; }
         public string? IdTransacaoExterna { get; set; }
         public string? MotivoCancelamento { get; set; }
@@ -19,9 +21,11 @@ namespace RaizesNordeste.Domain.Entities
 
         public List<ItemPedido> Itens { get; set; } = new();
 
-        public void CalcularValorTotal()
+        public void CalcularValorTotal(decimal descontoAdicional = 0m)
         {
-            ValorTotal = Itens.Sum(i => i.CalcularSubtotal());
+            var subtotal = Itens.Sum(i => i.CalcularSubtotal());
+            Desconto = descontoAdicional;
+            ValorTotal = Math.Max(0, subtotal - Desconto);
         }
 
         public void ConfirmarPagamento(string idTransacao)
