@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RaizesDoNordeste.Aplicacao.DTO;
 using RaizesDoNordeste.Aplicacao.Service;
 
@@ -16,58 +17,43 @@ namespace RaizesNordeste.Api.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Cadastrar([FromBody] CriarClienteDto dto)
         {
-            try
+            var cliente = await _clienteService.CriarClienteAsync(dto);
+            return CreatedAtAction(nameof(ConsultarPontos), new { id = cliente.Id }, new
             {
-                var cliente = await _clienteService.CriarClienteAsync(dto);
-                return CreatedAtAction(nameof(ConsultarPontos), new { id = cliente.Id }, cliente);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { erro = ex.Message });
-            }
+                cliente.Id,
+                cliente.Nome,
+                cliente.Email,
+                cliente.Cpf,
+                Perfil = cliente.perfilUsuario.ToString(),
+                cliente.Pontos,
+                cliente.ConsenteTermosLgpd,
+                cliente.DataCriacao
+            });
         }
 
         [HttpGet("{id:guid}/pontos")]
+        [Authorize]
         public async Task<IActionResult> ConsultarPontos(Guid id)
         {
-            try
-            {
-                var pontos = await _clienteService.ObterSaldoPontosAsync(id);
-                return Ok(new { idCliente = id, pontos });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { erro = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { erro = ex.Message });
-            }
+            var pontos = await _clienteService.ObterSaldoPontosAsync(id);
+            return Ok(new { idCliente = id, pontos });
         }
 
+
         [HttpDelete("{id:guid}/anonimizar")]
+        [Authorize]
         public async Task<IActionResult> Anonimizar(Guid id)
         {
-            try
+            await _clienteService.AnonimizarClienteAsync(id);
+            return Ok(new
             {
-                await _clienteService.AnonimizarClienteAsync(id);
-                return Ok(new
-                {
-                    mensagem = "Dados pessoais anonimizados com sucesso conforme diretrizes da LGPD.",
-                    idCliente = id,
-                    anonimo = true
-                });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { erro = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { erro = ex.Message });
-            }
+                mensagem = "Dados pessoais anonimizados com sucesso conforme diretrizes da LGPD.",
+                idCliente = id,
+                anonimo = true
+            });
         }
     }
 }

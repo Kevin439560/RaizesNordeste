@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RaizesDoNordeste.Aplicacao.DTO;
 using RaizesDoNordeste.Aplicacao.Service;
 
@@ -18,28 +19,21 @@ namespace RaizesNordeste.Api.Controllers
         }
 
         [HttpPost("webhook")]
+        [AllowAnonymous]
         public async Task<IActionResult> ProcessarWebhook([FromBody] WebhookPagamentoDto dto)
         {
-            try
+           
+            await _pedidoService.ProcessarConfirmacaoPagamentoAsync(dto.IdPedido, dto.Aprovado, dto.IdTransacao);
+            return Ok(new
             {
-                await _pedidoService.ProcessarConfirmacaoPagamentoAsync(dto.IdPedido, dto.Aprovado, dto.IdTransacao);
-                return Ok(new
-                {
-                    mensagem = "Notificação de pagamento processada com sucesso.",
-                    statusProcessado = dto.Aprovado ? "RECEBIDO" : "PAGAMENTO_RECUSADO"
-                });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { erro = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { erro = ex.Message });
-            }
+                mensagem = "Notificação de pagamento processada com sucesso.",
+                statusProcessado = dto.Aprovado ? "RECEBIDO" : "PAGAMENTO_RECUSADO"
+            });
+           
         }
 
         [HttpGet("auditoria")]
+        [Authorize(Roles = "GERENTE")]
         public async Task<IActionResult> ListarAuditoria([FromQuery] Guid? idUnidade = null)
         {
             var logs = await _auditoriaService.ConsultarRelatorioAsync(idUnidade);

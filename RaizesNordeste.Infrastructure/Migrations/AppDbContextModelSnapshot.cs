@@ -55,12 +55,53 @@ namespace RaizesNordeste.Infra.Migrations
                     b.Property<int>("Pontos")
                         .HasColumnType("integer");
 
+                    b.Property<string>("perfilUsuario")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("senhaHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Cpf")
                         .IsUnique();
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.ToTable("Clientes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("aaaaaaaa-bbbb-cccc-dddd-111111111111"),
+                            Anonimo = false,
+                            ConsenteTermosLgpd = true,
+                            Cpf = "111.111.111-11",
+                            DataCriacao = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "cliente@raizes.com",
+                            Nome = "Cliente Teste Seed",
+                            Pontos = 100,
+                            perfilUsuario = "CLIENTE",
+                            senhaHash = "8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92"
+                        },
+                        new
+                        {
+                            Id = new Guid("aaaaaaaa-bbbb-cccc-dddd-222222222222"),
+                            Anonimo = false,
+                            ConsenteTermosLgpd = true,
+                            Cpf = "999.999.999-99",
+                            DataCriacao = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "gerente@raizes.com",
+                            Nome = "Gerente Geral Seed",
+                            Pontos = 0,
+                            perfilUsuario = "GERENTE",
+                            senhaHash = "8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92"
+                        });
                 });
 
             modelBuilder.Entity("RaizesNordeste.Domain.Entities.Item", b =>
@@ -92,6 +133,9 @@ namespace RaizesNordeste.Infra.Migrations
                     b.Property<bool>("ProdutoSazonal")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("QuantidadeEstoque")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IdUnidade");
@@ -107,7 +151,8 @@ namespace RaizesNordeste.Infra.Migrations
                             IdUnidade = new Guid("99999999-8888-7777-6666-555555555555"),
                             Nome = "Baião de Dois Tradicional",
                             Preco = 34.90m,
-                            ProdutoSazonal = false
+                            ProdutoSazonal = false,
+                            QuantidadeEstoque = 50
                         },
                         new
                         {
@@ -117,7 +162,8 @@ namespace RaizesNordeste.Infra.Migrations
                             IdUnidade = new Guid("99999999-8888-7777-6666-555555555555"),
                             Nome = "Cuscuz Recheado Sertanejo",
                             Preco = 22.50m,
-                            ProdutoSazonal = false
+                            ProdutoSazonal = false,
+                            QuantidadeEstoque = 30
                         },
                         new
                         {
@@ -127,7 +173,8 @@ namespace RaizesNordeste.Infra.Migrations
                             IdUnidade = new Guid("99999999-8888-7777-6666-555555555555"),
                             Nome = "Canjica Junina Especial",
                             Preco = 14.00m,
-                            ProdutoSazonal = true
+                            ProdutoSazonal = true,
+                            QuantidadeEstoque = 2
                         });
                 });
 
@@ -210,6 +257,15 @@ namespace RaizesNordeste.Infra.Migrations
 
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Desconto")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<string>("FormaPagamento")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
 
                     b.Property<Guid?>("IdCliente")
                         .HasColumnType("uuid");
