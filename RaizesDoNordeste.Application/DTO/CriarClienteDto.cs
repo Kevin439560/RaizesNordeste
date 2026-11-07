@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RaizesNordeste.Dominio.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,7 +9,9 @@ namespace RaizesDoNordeste.Aplicacao.DTO
         string Nome,
         string Email,
         string Cpf,
-        bool ConsenteTermosLgpd
+        string Senha,
+        bool ConsenteTermosLgpd,
+        PerfilUsuario? Perfil = PerfilUsuario.CLIENTE
     );
 }
 

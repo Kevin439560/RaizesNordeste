@@ -1,10 +1,8 @@
-﻿using RaizesNordeste.Api;
+﻿using Microsoft.EntityFrameworkCore;
+using RaizesDoNordeste.Aplicacao.DTO;
 using RaizesNordeste.Domain.Entities;
+using RaizesNordeste.Dominio.Enums;
 using RaizesNordeste.Infra.Data;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RaizesDoNordeste.Aplicacao.Service;
 public class ClienteService
@@ -18,8 +16,30 @@ public class ClienteService
         _auditoriaService = auditoriaService;
     }
 
+    public async Task<Cliente> AutenticarAsync(LoginDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Senha))
+            throw new ArgumentException("E-mail e senha são obrigatórios.");
+
+        var cliente = await _context.Clientes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Email == dto.Email && !c.Anonimo);
+
+        if (cliente == null || !cliente.ValidarSenha(dto.Senha))
+            throw new UnauthorizedAccessException("Credenciais inválidas (e-mail ou senha incorretos).");
+
+        return cliente;
+    }
+
     public async Task<Cliente> CriarClienteAsync(CriarClienteDto dto)
     {
+        if (string.IsNullOrWhiteSpace(dto.Nome) || string.IsNullOrWhiteSpace(dto.Email) ||
+            string.IsNullOrWhiteSpace(dto.Cpf) || string.IsNullOrWhiteSpace(dto.Senha))
+            throw new ArgumentException("Nome, Email, CPF e Senha são campos obrigatórios.");
+
+        if (!dto.Email.Contains('@') || !dto.Email.Contains('.'))
+            throw new ArgumentException("Formato de e-mail inválido.");
+
         if (await _context.Clientes.AnyAsync(c => c.Cpf == dto.Cpf))
             throw new InvalidOperationException("Já existe um cliente cadastrado com este CPF.");
 
@@ -28,6 +48,8 @@ public class ClienteService
             Nome = dto.Nome,
             Email = dto.Email,
             Cpf = dto.Cpf,
+            senhaHash = Cliente.GerarSenhaHash(dto.Senha),
+            perfilUsuario = dto.Perfil ?? PerfilUsuario.CLIENTE,
             ConsenteTermosLgpd = dto.ConsenteTermosLgpd
         };
 
@@ -59,7 +81,6 @@ public class ClienteService
         cliente.AnonimizarDados();
         await _context.SaveChangesAsync();
 
-        // UC03 <<include>> UC09: Registra log de auditoria da anonimização LGPD
         await _auditoriaService.RegistrarOcorrenciaAsync(
             idUnidade: null,
             tipoAcao: "CLIENTE_ANONIMIZADO_LGPD",
