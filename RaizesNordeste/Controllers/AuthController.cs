@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using RaizesDoNordeste.Aplicacao;
 using RaizesDoNordeste.Aplicacao.DTO;
 using RaizesDoNordeste.Aplicacao.Service;
+using RaizesNordeste.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -23,6 +24,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [ProducesResponseType(typeof(Item), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var usuario = await _clienteService.AutenticarAsync(dto);

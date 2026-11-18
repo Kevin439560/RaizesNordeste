@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RaizesDoNordeste.Aplicacao.DTO;
 using RaizesDoNordeste.Aplicacao.Service;
+using RaizesNordeste.Domain.Entities;
 
 namespace RaizesNordeste.Api.Controllers
 {
@@ -18,6 +19,9 @@ namespace RaizesNordeste.Api.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [ProducesResponseType(typeof(Pedido), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> Cadastrar([FromBody] CriarClienteDto dto)
         {
             var cliente = await _clienteService.CriarClienteAsync(dto);
@@ -36,6 +40,10 @@ namespace RaizesNordeste.Api.Controllers
 
         [HttpGet("{id:guid}/pontos")]
         [Authorize]
+        [ProducesResponseType(typeof(Item), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> ConsultarPontos(Guid id)
         {
             var pontos = await _clienteService.ObterSaldoPontosAsync(id);
@@ -45,6 +53,10 @@ namespace RaizesNordeste.Api.Controllers
 
         [HttpDelete("{id:guid}/anonimizar")]
         [Authorize]
+        [ProducesResponseType(typeof(Item), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Anonimizar(Guid id)
         {
             await _clienteService.AnonimizarClienteAsync(id);

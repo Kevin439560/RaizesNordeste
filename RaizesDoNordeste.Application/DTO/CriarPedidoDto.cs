@@ -8,7 +8,7 @@ namespace RaizesDoNordeste.Aplicacao.DTO
     public record CriarPedidoDto(
         Guid IdUnidade,
         Guid? IdCliente,
-        CanalPedido? Canal,
+        CanalPedido? canalPedido,
         List<ItemPedidoDto> Itens,
         string FormaPagamento = "MOCK",
         int? PontosParaResgatar = null

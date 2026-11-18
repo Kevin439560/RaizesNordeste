@@ -61,7 +61,7 @@ public class PedidoService
     public async Task<Pedido> CriarPedidoAsync(CriarPedidoDto dto)
     {
 
-        if (dto.Canal == null || !Enum.IsDefined(typeof(CanalPedido), dto.Canal.Value))
+        if (dto.canalPedido == null || !Enum.IsDefined(typeof(CanalPedido), dto.canalPedido.Value))
             throw new ArgumentException("O campo 'canalPedido' não foi informado ou com valor diferente do esperado");
 
         if (dto.Itens == null || !dto.Itens.Any())
@@ -75,21 +75,21 @@ public class PedidoService
         {
             IdUnidade = dto.IdUnidade,
             IdCliente = dto.IdCliente,
-            Canal = dto.Canal.Value,
+            Canal = dto.canalPedido.Value,
             FormaPagamento = string.IsNullOrWhiteSpace(dto.FormaPagamento) ? "MOCK" : dto.FormaPagamento
         };
 
         foreach (var itemDto in dto.Itens)
         {
             if (itemDto.Quantidade <= 0)
-                throw new ArgumentException($"A quantidade do item {itemDto.IdItem} deve ser maior que zero.");
+                throw new ArgumentException($"Todos os itens do pedido devem ter uma quantidade maior que zero.");
 
             var itemCardapio = await _context.Itens
                 .FirstOrDefaultAsync(i => i.Id == itemDto.IdItem && i.IdUnidade == dto.IdUnidade)
-                ?? throw new KeyNotFoundException($"O produto/item {itemDto.IdItem} não foi encontrado nesta unidade.");
+                ?? throw new KeyNotFoundException($"O produto/item [{itemDto.IdItem}] não foi encontrado nesta unidade.");
 
             if (itemCardapio == null || !itemCardapio.ValidarDisponibilidade())
-                throw new InvalidOperationException($"O item {itemDto.IdItem} não está disponível nesta unidade.");
+                throw new InvalidOperationException($"O item [{itemDto.IdItem}] não está disponível nesta unidade.");
 
             itemCardapio.BaixarEstoque(itemDto.Quantidade);
 
@@ -130,7 +130,7 @@ public class PedidoService
         return pedido;
     }
 
-    public async Task<object> ListarPedidosAsync(CanalPedido? canalPedido, StatusPedido? status, int page = 1, int limit = 10)
+    public async Task<object> ListarPedidosAsync(Guid? idCliente, CanalPedido? canalPedido, StatusPedido? status, int page = 1, int limit = 10)
     {
         page = Math.Max(1, page);
         limit = Math.Clamp(limit, 1, 100);
@@ -139,6 +139,9 @@ public class PedidoService
             .Include(p => p.Itens)
             .AsNoTracking()
             .AsQueryable();
+
+        if (idCliente.HasValue)
+            query = query.Where(p => p.IdCliente == idCliente.Value);
 
         if (canalPedido.HasValue)
             query = query.Where(p => p.Canal == canalPedido.Value);
@@ -153,14 +156,13 @@ public class PedidoService
             .Take(limit)
             .ToListAsync();
 
-        return new
-        {
-            page,
-            limit,
-            totalItens,
-            totalPaginas = (int)Math.Ceiling(totalItens / (double)limit),
-            dados = itens
-        };
+        return new PaginacaoPedidosDto(
+        Page: page,
+        Limit: limit,
+        TotalItens: totalItens,
+        TotalPaginas: (int)Math.Ceiling(totalItens / (double)limit),
+        Dados: itens
+    );
     }
 
     public async Task<Pedido> ObterPorIdAsync(Guid idPedido)
@@ -220,12 +222,23 @@ public class PedidoService
         );
     }
 
-    public async Task AlterarStatusAsync(Guid idPedido, StatusPedido novoStatus, string? motivo)
+    public async Task AlterarStatusAsync(Guid idPedido, StatusPedido? novoStatus, string? motivo)
     {
+        if (novoStatus == null) {
+            throw new ArgumentException("É preciso informar um novo status para o pedido");
+        }
         var pedido = await _context.Pedidos
             .Include(p => p.Itens)
             .FirstOrDefaultAsync(p => p.Id == idPedido)
             ?? throw new KeyNotFoundException("Pedido não encontrado.");
+
+        if(pedido.Status == StatusPedido.CANCELADO) {
+            throw new InvalidOperationException("O pedido já está cancelado e não pode ter seu status alterado");
+        }
+
+        if(pedido.Status == novoStatus) {
+            throw new InvalidOperationException("O pedido já se encontra no status informado");
+        }
 
         if (novoStatus == StatusPedido.CANCELADO)
         {
@@ -239,7 +252,7 @@ public class PedidoService
         }
         else
         {
-            pedido.AtualizarStatus(novoStatus);
+            pedido.AtualizarStatus(novoStatus.Value);
         }
 
         await _context.SaveChangesAsync();

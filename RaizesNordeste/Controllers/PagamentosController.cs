@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RaizesDoNordeste.Aplicacao.DTO;
 using RaizesDoNordeste.Aplicacao.Service;
+using RaizesNordeste.Domain.Entities;
 
 namespace RaizesNordeste.Api.Controllers
 {
@@ -20,6 +21,9 @@ namespace RaizesNordeste.Api.Controllers
 
         [HttpPost("webhook")]
         [AllowAnonymous]
+        [ProducesResponseType(typeof(Item), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> ProcessarWebhook([FromBody] WebhookPagamentoDto dto)
         {
            
@@ -34,6 +38,9 @@ namespace RaizesNordeste.Api.Controllers
 
         [HttpGet("auditoria")]
         [Authorize(Roles = "GERENTE")]
+        [ProducesResponseType(typeof(Item), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErroPadraoDto), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ListarAuditoria([FromQuery] Guid? idUnidade = null)
         {
             var logs = await _auditoriaService.ConsultarRelatorioAsync(idUnidade);
